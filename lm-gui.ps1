@@ -338,13 +338,13 @@ $gui.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHOME + "\powershell.
 
 #### Background images START
 
-$img = [System.Drawing.Image]::FromFile( 'C:\Users\jkallas\Desktop\beaconHill1800.jpg' )
+$img = [System.Drawing.Image]::FromFile( 'C:\beaconHill1800.jpg' )
 $picBox = New-Object Windows.Forms.PictureBox
 $picBox.Width = $img.Size.Width
 $picBox.Height = $img.Size.Height
 $picBox.Image = $img
 
-$bhLogo = [System.Drawing.Image]::FromFile( 'C:\Users\jkallas\Desktop\bhLogo.png' )
+$bhLogo = [System.Drawing.Image]::FromFile( 'C:\bhLogo.png' )
 $bhBox = New-Object Windows.Forms.PictureBox
 $bhBox.Width = $bhLogo.Size.Width
 $bhBox.Height = $bhLogo.Size.Height
