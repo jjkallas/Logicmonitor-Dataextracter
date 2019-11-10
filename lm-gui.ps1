@@ -328,165 +328,167 @@ Function LM-Export-Data{
 
 ####################################### START OF FRONTEND
 
-$gui = New-Object System.Windows.Forms.Form
-$gui.Text = 'BH Data Extractor'
-$gui.Height = 200
-$gui.Width = 500
-$gui.AutoScale = $true
-$gui.StartPosition = "CenterScreen"
-$gui.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHOME + "\powershell.exe")
+Function LM-GUI{
+	$gui = New-Object System.Windows.Forms.Form
+	$gui.Text = 'BH Data Extractor'
+	$gui.Height = 200
+	$gui.Width = 500
+	$gui.AutoScale = $true
+	$gui.StartPosition = "CenterScreen"
+	$gui.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHOME + "\powershell.exe")
 
-#### Background images START
+	#### Background images START
 
-$img = [System.Drawing.Image]::FromFile( 'C:\beaconHill1800.jpg' )
-$picBox = New-Object Windows.Forms.PictureBox
-$picBox.Width = $img.Size.Width
-$picBox.Height = $img.Size.Height
-$picBox.Image = $img
+	$img = [System.Drawing.Image]::FromFile( 'C:\beaconHill1800.jpg' )
+	$picBox = New-Object Windows.Forms.PictureBox
+	$picBox.Width = $img.Size.Width
+	$picBox.Height = $img.Size.Height
+	$picBox.Image = $img
 
-$bhLogo = [System.Drawing.Image]::FromFile( 'C:\bhLogo.png' )
-$bhBox = New-Object Windows.Forms.PictureBox
-$bhBox.Width = $bhLogo.Size.Width
-$bhBox.Height = $bhLogo.Size.Height
-$bhBox.Image = $bhLogo
+	$bhLogo = [System.Drawing.Image]::FromFile( 'C:\bhLogo.png' )
+	$bhBox = New-Object Windows.Forms.PictureBox
+	$bhBox.Width = $bhLogo.Size.Width
+	$bhBox.Height = $bhLogo.Size.Height
+	$bhBox.Image = $bhLogo
 
-#### Background images END
+	#### Background images END
 
-#### Input section START
+	#### Input section START
 
-$findB = New-Object System.Windows.Forms.Button
-$findB.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 130), (($gui.Height / 2) ) )
-$findB.Text = "Find Device"
-$findB.Add_Click(
-{
-    Write-host "looking..."
-    $selectedDevice = LM-Get-Device ($deviceBox.Text)
-    $startI.Text = ($selectedDevice.items[0].createdOn)
-    $stopI.Text = ($selectedDevice.items[0].updatedOn)
+	$findB = New-Object System.Windows.Forms.Button
+	$findB.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 130), (($gui.Height / 2) ) )
+	$findB.Text = "Find Device"
+	$findB.Add_Click(
+	{
+	    Write-host "looking..."
+	    $selectedDevice = LM-Get-Device ($deviceBox.Text)
+	    $startI.Text = ($selectedDevice.items[0].createdOn)
+	    $stopI.Text = ($selectedDevice.items[0].updatedOn)
+	}
+	)
+
+	$extractB = New-Object System.Windows.Forms.Button
+	$extractB.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 50), (($gui.Height / 2) ) )
+	$extractB.Text = "Extract"
+	$extractB.Add_Click(
+	{
+	    $startVal = [int] $startI.Text
+	    $stopVal = [int] $stopI.Text
+	    if ($stopVal -gt $startVal ) {
+		Try {
+		    LM-Export-Data $deviceBox.Text $startVal $stopVal -fileName $fileI.Text
+		    Write-Host "Extract completed." 
+		}
+		Catch {
+		    Write-Host "Received error: " -NoNewline -ForegroundColor White
+		    Write-Error $_
+		    Write-Host "Check device name."
+		}
+
+	    } 
+	    else {
+		if ( $stopVal -eq '' ) {
+		    Write-Host "Please enter a time range"
+		}
+		else {
+		    Write-Host "Invalid dates: Stop date must be after start date"
+		}
+	    }
+	}
+	)
+
+	#### Device Input Start
+
+	$deviceL = New-Object System.Windows.Forms.Label
+	$deviceL.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 136), (($gui.Height / 2) - 57 ) )
+	$deviceL.Text = "Device:"
+	$deviceL.AutoSize = $true
+
+	$deviceBox = New-Object System.Windows.Forms.ComboBox
+	$deviceBox.Width = 180
+	$deviceBox.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 90), (($gui.Height / 2) - 60 ) )
+	$deviceBox.Sorted = $true
+	$deviceBox.Add_Textchanged(
+	{
+	    $fileI.Text = $deviceBox.Text
+	}
+	)
+
+	$deviceList = LM-Get-All-Devices
+	Foreach ($device in $deviceList.items){ 
+	    $deviceBox.Items.Add( $device.displayName ) | Write-Debug #redirect output to debug to clear the spam
+	} 
+
+	#### Device Input End
+
+	$fileL = New-Object System.Windows.Forms.Label
+	$fileL.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 155), (($gui.Height / 2) - 32 ) )
+	$fileL.Text = "Output csv:"
+	$fileL.AutoSize = $true
+
+	$fileI = New-Object System.Windows.Forms.TextBox
+	$fileI.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 90), (($gui.Height / 2) - 35 ) )
+	$fileI.Text = $deviceBox.Text
+	$fileI.Width = 165
+
+	#### Input section END
+
+	#### Epochs section START
+
+	$epochsL = New-Object System.Windows.Forms.Label
+	$epochsL.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 35), (($gui.Height / 2) - 70 ) )
+	$epochsL.Text = "Epochs" 
+	$epochsL.AutoSize = $true
+
+	$startL = New-Object System.Windows.Forms.Label
+	$startL.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 75), (($gui.Height / 2) - 47 ) )
+	$startL.Text = "Start:"
+	$startL.AutoSize = $true
+
+	$startI = New-Object System.Windows.Forms.TextBox
+	$startI.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 45), (($gui.Height / 2) - 50 ) )
+	$startI.Width = 80
+	$startI.Text = ''
+
+	$stopL = New-Object System.Windows.Forms.Label
+	$stopL.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 75), (($gui.Height / 2) - 22 ) )
+	$stopL.Text = "Stop:"
+	$stopL.AutoSize = $true
+
+	$stopI = New-Object System.Windows.Forms.TextBox
+	$stopI.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 45), (($gui.Height / 2) - 25 ) )
+	$stopI.Width = 80
+	$stopI.Text = ''
+
+	#### Epochs section END
+
+	$gui.Controls.Add( $extractB )
+	$gui.Controls.Add( $findB )
+	$gui.Controls.Add( $deviceL )
+	$gui.Controls.Add( $deviceBox )
+	$gui.Controls.Add( $fileL )
+	$gui.Controls.Add( $fileI )
+	$gui.Controls.Add( $epochsL )
+	$gui.Controls.Add( $startL )
+	$gui.Controls.Add( $startI )
+	$gui.Controls.Add( $stopL )
+	$gui.Controls.Add( $stopI )
+
+	$gui.Controls.Add( $picBox )      # or comment this out, and use below lines for BH logo
+
+	#$gui.Controls.Add( $bhBox )
+	#$gui.BackColor = "White"           # WhiteSmoke/White/
+
+	Clear
+	Write-Host
+	Write-Host
+	Write-Host "            Beacon Hill SG            " -ForegroundColor Blue -BackgroundColor White
+	Write-Host "                                      " -BackgroundColor Gray
+	Write-host "         " $deviceList.total "devices found" "          " -ForegroundColor Blue -BackgroundColor Gray
+	Write-Host "                                      " -BackgroundColor Gray
+	Write-Host 
+
+	$gui.ShowDialog()
 }
-)
-
-$extractB = New-Object System.Windows.Forms.Button
-$extractB.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 50), (($gui.Height / 2) ) )
-$extractB.Text = "Extract"
-$extractB.Add_Click(
-{
-    $startVal = [int] $startI.Text
-    $stopVal = [int] $stopI.Text
-    if ($stopVal -gt $startVal ) {
-        Try {
-            LM-Export-Data $deviceBox.Text $startVal $stopVal -fileName $fileI.Text
-            Write-Host "Extract completed." 
-        }
-        Catch {
-            Write-Host "Received error: " -NoNewline -ForegroundColor White
-            Write-Error $_
-            Write-Host "Check device name."
-        }
-
-    } 
-    else {
-        if ( $stopVal -eq '' ) {
-            Write-Host "Please enter a time range"
-        }
-        else {
-            Write-Host "Invalid dates: Stop date must be after start date"
-        }
-    }
-}
-)
-
-#### Device Input Start
-
-$deviceL = New-Object System.Windows.Forms.Label
-$deviceL.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 136), (($gui.Height / 2) - 57 ) )
-$deviceL.Text = "Device:"
-$deviceL.AutoSize = $true
-
-$deviceBox = New-Object System.Windows.Forms.ComboBox
-$deviceBox.Width = 180
-$deviceBox.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 90), (($gui.Height / 2) - 60 ) )
-$deviceBox.Sorted = $true
-$deviceBox.Add_Textchanged(
-{
-    $fileI.Text = $deviceBox.Text
-}
-)
-
-$deviceList = LM-Get-All-Devices
-Foreach ($device in $deviceList.items){ 
-    $deviceBox.Items.Add( $device.displayName ) | Write-Debug #redirect output to debug to clear the spam
-} 
-
-#### Device Input End
-
-$fileL = New-Object System.Windows.Forms.Label
-$fileL.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 155), (($gui.Height / 2) - 32 ) )
-$fileL.Text = "Output csv:"
-$fileL.AutoSize = $true
-
-$fileI = New-Object System.Windows.Forms.TextBox
-$fileI.Location = New-Object System.Drawing.Point( ((($gui.Width / 2) + $gui.Width / 4) - 90), (($gui.Height / 2) - 35 ) )
-$fileI.Text = $deviceBox.Text
-$fileI.Width = 165
-
-#### Input section END
-
-#### Epochs section START
-
-$epochsL = New-Object System.Windows.Forms.Label
-$epochsL.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 35), (($gui.Height / 2) - 70 ) )
-$epochsL.Text = "Epochs" 
-$epochsL.AutoSize = $true
-
-$startL = New-Object System.Windows.Forms.Label
-$startL.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 75), (($gui.Height / 2) - 47 ) )
-$startL.Text = "Start:"
-$startL.AutoSize = $true
-
-$startI = New-Object System.Windows.Forms.TextBox
-$startI.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 45), (($gui.Height / 2) - 50 ) )
-$startI.Width = 80
-$startI.Text = ''
-
-$stopL = New-Object System.Windows.Forms.Label
-$stopL.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 75), (($gui.Height / 2) - 22 ) )
-$stopL.Text = "Stop:"
-$stopL.AutoSize = $true
-
-$stopI = New-Object System.Windows.Forms.TextBox
-$stopI.Location = New-Object System.Drawing.Point( (($gui.Width / 4) - 45), (($gui.Height / 2) - 25 ) )
-$stopI.Width = 80
-$stopI.Text = ''
- 
-#### Epochs section END
-
-$gui.Controls.Add( $extractB )
-$gui.Controls.Add( $findB )
-$gui.Controls.Add( $deviceL )
-$gui.Controls.Add( $deviceBox )
-$gui.Controls.Add( $fileL )
-$gui.Controls.Add( $fileI )
-$gui.Controls.Add( $epochsL )
-$gui.Controls.Add( $startL )
-$gui.Controls.Add( $startI )
-$gui.Controls.Add( $stopL )
-$gui.Controls.Add( $stopI )
-
-$gui.Controls.Add( $picBox )      # or comment this out, and use below lines for BH logo
-
-#$gui.Controls.Add( $bhBox )
-#$gui.BackColor = "White"           # WhiteSmoke/White/
-
-Clear
-Write-Host
-Write-Host
-Write-Host "            Beacon Hill SG            " -ForegroundColor Blue -BackgroundColor White
-Write-Host "                                      " -BackgroundColor Gray
-Write-host "         " $deviceList.total "devices found" "          " -ForegroundColor Blue -BackgroundColor Gray
-Write-Host "                                      " -BackgroundColor Gray
-Write-Host 
-
-$gui.ShowDialog()
 
 ####################################### END OF FRONTEND
