@@ -242,6 +242,7 @@ Function LM-Get-Data{
 
 }
 
+
 Function LM-Get-All-Data{
     [Cmdletbinding()]
     Param(
@@ -258,10 +259,14 @@ Function LM-Get-All-Data{
     )
 
     For ($i=$start; $i -le $end; $i = $i + 60000){        # 60000 epoch difference is 500 results (the result limit per API request), if dataqueries are 2 minutes apart
-        $query = '?format=csv&start=' + $i + '&end=' + ($i + 60000)
+        if ( ($i + 60000) -gt $end){
+            $query = '?format=csv&start=' + $i + '&end=' + $end
+        }
+        else {
+            $query = '?format=csv&start=' + $i + '&end=' + ($i + 60000)
+        }
         LM-Get-Data $deviceId $dataSourceId $query
     }
-
 }
 
 Function LM-Export-Data{
