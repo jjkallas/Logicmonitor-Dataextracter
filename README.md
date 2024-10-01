@@ -1,4 +1,4 @@
-An app and GUI using Powershell and Windows Forms that extracts data from Logicmonitor, an infrastructure monitoring solution.
+An app and GUI created with Powershell and Windows Forms. This app lets you create a spreadsheet file containing detailed device information within a given timeframe using the Logicmonitor API
 
 ![image](https://github.com/jjkallas/lm-gui/assets/39398421/3ca90e31-14bd-4a34-ae68-7417d6a1b5a2)
 
